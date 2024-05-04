@@ -1,0 +1,48 @@
+services:
+  api:
+    container_name: express-js-app
+    image: express-debug-img
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./:/usr/src/app
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+
+  mysql:
+    platform: linux/amd64
+    image: mysql
+    container_name: mysql
+    restart: unless-stopped
+    tty: true
+    env_file: .env
+    ports:
+      - "${MYSQL_HOST_PORT}:${MYSQL_DOCKER_CONTAINER_PORT}"
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: db_test
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user
+      MYSQL_ROOT_PASSWORD: root
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+
+  phpmyadmin:
+    depends_on:
+      - mysql
+    image: phpmyadmin:latest
+    container_name: phpmyadmin_docker
+    restart: unless-stopped
+    ports:
+      - "1002:80"
+    environment:
+      PMA_HOST: mysql
+      UPLOAD_LIMIT: 300M
